@@ -1,11 +1,13 @@
 mod api;
 mod application;
+mod config;
 mod domain;
 mod infrastructure;
 
-use std::{net::SocketAddr, sync::Arc};
+use std::sync::Arc;
 
 use application::{api_key_service::ApiKeyService, user_service::UserService};
+use config::AppConfig;
 use infrastructure::persistence::{
     database::connect_and_migrate,
     repositories::{
@@ -16,7 +18,9 @@ use sea_orm::DbErr;
 
 #[tokio::main]
 async fn main() -> Result<(), DbErr> {
-    let db = connect_and_migrate("sqlite://app.db?mode=rwc").await?;
+    let app_config = AppConfig::from_env();
+
+    let db = connect_and_migrate(&app_config.database_url).await?;
 
     let user_repo = Arc::new(SeaOrmUserRepository::new(db.clone()));
     let api_key_repo = Arc::new(SeaOrmApiKeyRepository::new(db.clone()));
@@ -28,10 +32,10 @@ async fn main() -> Result<(), DbErr> {
 
     let app = api::routes::create_router(state);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("listening on {addr}");
+    let bind_addr = format!("{}:{}", app_config.host, app_config.port);
+    println!("listening on {bind_addr}");
 
-    let listener = tokio::net::TcpListener::bind(addr)
+    let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await
         .expect("failed to bind tcp listener");
     axum::serve(listener, app)
