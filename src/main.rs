@@ -15,9 +15,14 @@ use infrastructure::persistence::{
     },
 };
 use sea_orm::DbErr;
+use tracing::info;
+use tracing_subscriber::{EnvFilter, fmt};
 
 #[tokio::main]
 async fn main() -> Result<(), DbErr> {
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    fmt().with_env_filter(env_filter).init();
+
     let app_config = AppConfig::from_env();
 
     let db = connect_and_migrate(&app_config.database_url).await?;
@@ -33,11 +38,12 @@ async fn main() -> Result<(), DbErr> {
     let app = api::routes::create_router(state);
 
     let bind_addr = format!("{}:{}", app_config.host, app_config.port);
-    println!("listening on {bind_addr}");
+    info!(address = %bind_addr, "server starting");
 
     let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await
         .expect("failed to bind tcp listener");
+    info!(address = %bind_addr, "server listening");
     axum::serve(listener, app)
         .await
         .expect("failed to start server");
