@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, DbErr, EntityTrait,
+    QueryFilter,
 };
+use uuid::Uuid;
 
 use crate::{
     application::ports::ApiKeyRepository, domain::models::ApiKey,
@@ -10,6 +12,10 @@ use crate::{
 
 pub struct SeaOrmApiKeyRepository {
     db: DatabaseConnection,
+}
+
+fn parse_uuid(value: &str, field: &str) -> Result<Uuid, DbErr> {
+    Uuid::parse_str(value).map_err(|err| DbErr::Custom(format!("invalid uuid in {field}: {err}")))
 }
 
 impl SeaOrmApiKeyRepository {
@@ -22,23 +28,24 @@ impl SeaOrmApiKeyRepository {
 impl ApiKeyRepository for SeaOrmApiKeyRepository {
     async fn create(
         &self,
-        user_id: i32,
+        id: Uuid,
+        user_id: Uuid,
         key_value: String,
         label: Option<String>,
     ) -> Result<ApiKey, sea_orm::DbErr> {
         let inserted = api_key::ActiveModel {
-            user_id: Set(user_id),
+            id: Set(id.to_string()),
+            user_id: Set(user_id.to_string()),
             key_value: Set(key_value),
             label: Set(label),
             revoked: Set(false),
-            ..Default::default()
         }
         .insert(&self.db)
         .await?;
 
         Ok(ApiKey {
-            id: inserted.id,
-            user_id: inserted.user_id,
+            id: parse_uuid(&inserted.id, "api_keys.id")?,
+            user_id: parse_uuid(&inserted.user_id, "api_keys.user_id")?,
             key_value: inserted.key_value,
             label: inserted.label,
             revoked: inserted.revoked,
@@ -47,38 +54,44 @@ impl ApiKeyRepository for SeaOrmApiKeyRepository {
 
     async fn list(&self) -> Result<Vec<ApiKey>, sea_orm::DbErr> {
         let models = api_key::Entity::find().all(&self.db).await?;
-        Ok(models
+        models
             .into_iter()
-            .map(|m| ApiKey {
-                id: m.id,
-                user_id: m.user_id,
-                key_value: m.key_value,
-                label: m.label,
-                revoked: m.revoked,
+            .map(|m| {
+                Ok(ApiKey {
+                    id: parse_uuid(&m.id, "api_keys.id")?,
+                    user_id: parse_uuid(&m.user_id, "api_keys.user_id")?,
+                    key_value: m.key_value,
+                    label: m.label,
+                    revoked: m.revoked,
+                })
             })
-            .collect())
+            .collect()
     }
 
-    async fn list_by_user(&self, user_id: i32) -> Result<Vec<ApiKey>, sea_orm::DbErr> {
+    async fn list_by_user(&self, user_id: Uuid) -> Result<Vec<ApiKey>, sea_orm::DbErr> {
         let models = api_key::Entity::find()
-            .filter(api_key::Column::UserId.eq(user_id))
+            .filter(api_key::Column::UserId.eq(user_id.to_string()))
             .all(&self.db)
             .await?;
 
-        Ok(models
+        models
             .into_iter()
-            .map(|m| ApiKey {
-                id: m.id,
-                user_id: m.user_id,
-                key_value: m.key_value,
-                label: m.label,
-                revoked: m.revoked,
+            .map(|m| {
+                Ok(ApiKey {
+                    id: parse_uuid(&m.id, "api_keys.id")?,
+                    user_id: parse_uuid(&m.user_id, "api_keys.user_id")?,
+                    key_value: m.key_value,
+                    label: m.label,
+                    revoked: m.revoked,
+                })
             })
-            .collect())
+            .collect()
     }
 
-    async fn set_revoked(&self, id: i32, revoked: bool) -> Result<Option<ApiKey>, sea_orm::DbErr> {
-        let maybe_model = api_key::Entity::find_by_id(id).one(&self.db).await?;
+    async fn set_revoked(&self, id: Uuid, revoked: bool) -> Result<Option<ApiKey>, sea_orm::DbErr> {
+        let maybe_model = api_key::Entity::find_by_id(id.to_string())
+            .one(&self.db)
+            .await?;
         let Some(model) = maybe_model else {
             return Ok(None);
         };
@@ -88,16 +101,18 @@ impl ApiKeyRepository for SeaOrmApiKeyRepository {
         let updated = active.update(&self.db).await?;
 
         Ok(Some(ApiKey {
-            id: updated.id,
-            user_id: updated.user_id,
+            id: parse_uuid(&updated.id, "api_keys.id")?,
+            user_id: parse_uuid(&updated.user_id, "api_keys.user_id")?,
             key_value: updated.key_value,
             label: updated.label,
             revoked: updated.revoked,
         }))
     }
 
-    async fn delete_by_id(&self, id: i32) -> Result<u64, sea_orm::DbErr> {
-        let result = api_key::Entity::delete_by_id(id).exec(&self.db).await?;
+    async fn delete_by_id(&self, id: Uuid) -> Result<u64, sea_orm::DbErr> {
+        let result = api_key::Entity::delete_by_id(id.to_string())
+            .exec(&self.db)
+            .await?;
         Ok(result.rows_affected)
     }
 }

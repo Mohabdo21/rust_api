@@ -4,8 +4,8 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "api_keys")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
-    pub user_id: i32,
+    pub id: String,
+    pub user_id: String,
     pub key_value: String,
     pub label: Option<String>,
     pub revoked: bool,

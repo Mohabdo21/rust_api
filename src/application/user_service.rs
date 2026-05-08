@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use uuid::Uuid;
 
 use crate::{
     application::{error::AppError, ports::UserRepository},
@@ -16,14 +17,14 @@ impl UserService {
     }
 
     pub async fn create(&self, name: String, email: String) -> Result<User, AppError> {
-        Ok(self.repo.create(name, email).await?)
+        Ok(self.repo.create(Uuid::now_v7(), name, email).await?)
     }
 
     pub async fn list(&self) -> Result<Vec<User>, AppError> {
         Ok(self.repo.list().await?)
     }
 
-    pub async fn get_by_id(&self, id: i32) -> Result<User, AppError> {
+    pub async fn get_by_id(&self, id: Uuid) -> Result<User, AppError> {
         self.repo.find_by_id(id).await?.ok_or(AppError::NotFound)
     }
 }

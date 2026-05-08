@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::domain::models::{ApiKey, User};
 
@@ -10,21 +11,21 @@ pub struct CreateUserRequest {
 
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
-    pub id: i32,
+    pub id: Uuid,
     pub name: String,
     pub email: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct CreateApiKeyRequest {
-    pub user_id: i32,
+    pub user_id: Uuid,
     pub label: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct ApiKeyResponse {
-    pub id: i32,
-    pub user_id: i32,
+    pub id: Uuid,
+    pub user_id: Uuid,
     pub key_value: String,
     pub label: Option<String>,
     pub revoked: bool,

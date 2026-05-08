@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20260508_000001_create_users_table;
 mod m20260508_000002_create_api_keys_table;
+mod m20260508_000003_convert_ids_to_uuid_text;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20260508_000001_create_users_table::Migration),
             Box::new(m20260508_000002_create_api_keys_table::Migration),
+            Box::new(m20260508_000003_convert_ids_to_uuid_text::Migration),
         ]
     }
 }

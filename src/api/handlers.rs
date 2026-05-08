@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
+use uuid::Uuid;
 
 use crate::{
     api::{
@@ -43,7 +44,7 @@ pub async fn list_users(
 
 pub async fn get_user(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<UserResponse>, ApiError> {
     let user = state.user_service.get_by_id(id).await?;
     Ok(Json(UserResponse::from(user)))
@@ -70,7 +71,7 @@ pub async fn list_api_keys(
 
 pub async fn list_user_api_keys(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Vec<ApiKeyResponse>>, ApiError> {
     let keys = state.api_key_service.list_by_user(id).await?;
     Ok(Json(keys.into_iter().map(ApiKeyResponse::from).collect()))
@@ -78,7 +79,7 @@ pub async fn list_user_api_keys(
 
 pub async fn revoke_api_key(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<ApiKeyResponse>, ApiError> {
     let key = state.api_key_service.revoke(id).await?;
     Ok(Json(ApiKeyResponse::from(key)))
@@ -86,7 +87,7 @@ pub async fn revoke_api_key(
 
 pub async fn delete_api_key(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     state.api_key_service.delete(id).await?;
     Ok(StatusCode::NO_CONTENT)
