@@ -33,15 +33,20 @@ impl ApiKeyRepository for SeaOrmApiKeyRepository {
         key_value: String,
         label: Option<String>,
     ) -> Result<ApiKey, sea_orm::DbErr> {
-        let inserted = api_key::ActiveModel {
+        let active = api_key::ActiveModel {
             id: Set(id.to_string()),
             user_id: Set(user_id.to_string()),
             key_value: Set(key_value),
             label: Set(label),
             revoked: Set(false),
-        }
-        .insert(&self.db)
-        .await?;
+        };
+
+        api_key::Entity::insert(active).exec(&self.db).await?;
+
+        let inserted = api_key::Entity::find_by_id(id.to_string())
+            .one(&self.db)
+            .await?
+            .ok_or_else(|| DbErr::Custom("inserted api key not found".to_string()))?;
 
         Ok(ApiKey {
             id: parse_uuid(&inserted.id, "api_keys.id")?,

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection, DbErr, EntityTrait};
+use sea_orm::{ActiveValue::Set, DatabaseConnection, DbErr, EntityTrait};
 use uuid::Uuid;
 
 use crate::{
@@ -24,13 +24,18 @@ impl SeaOrmUserRepository {
 #[async_trait]
 impl UserRepository for SeaOrmUserRepository {
     async fn create(&self, id: Uuid, name: String, email: String) -> Result<User, sea_orm::DbErr> {
-        let inserted = user::ActiveModel {
+        let active = user::ActiveModel {
             id: Set(id.to_string()),
             name: Set(name),
             email: Set(email),
-        }
-        .insert(&self.db)
-        .await?;
+        };
+
+        user::Entity::insert(active).exec(&self.db).await?;
+
+        let inserted = user::Entity::find_by_id(id.to_string())
+            .one(&self.db)
+            .await?
+            .ok_or_else(|| DbErr::Custom("inserted user not found".to_string()))?;
 
         Ok(User {
             id: parse_uuid(&inserted.id)?,
