@@ -50,6 +50,14 @@ pub async fn get_user(
     Ok(Json(UserResponse::from(user)))
 }
 
+pub async fn del_user(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, ApiError> {
+    state.user_service.delete(id).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 pub async fn create_api_key(
     State(state): State<AppState>,
     Json(payload): Json<CreateApiKeyRequest>,

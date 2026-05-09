@@ -8,6 +8,7 @@ use crate::domain::models::{ApiKey, User};
 pub trait UserRepository: Send + Sync {
     async fn create(&self, id: Uuid, name: String, email: String) -> Result<User, DbErr>;
     async fn list(&self) -> Result<Vec<User>, DbErr>;
+    async fn delete_by_id(&self, id: Uuid) -> Result<u64, DbErr>;
     async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, DbErr>;
 }
 

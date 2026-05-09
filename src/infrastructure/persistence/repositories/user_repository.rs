@@ -58,6 +58,13 @@ impl UserRepository for SeaOrmUserRepository {
             .collect()
     }
 
+    async fn delete_by_id(&self, id: Uuid) -> Result<u64, sea_orm::DbErr> {
+        let res = user::Entity::delete_by_id(id.to_string())
+            .exec(&self.db)
+            .await?;
+        Ok(res.rows_affected)
+    }
+
     async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, sea_orm::DbErr> {
         let model = user::Entity::find_by_id(id.to_string())
             .one(&self.db)
