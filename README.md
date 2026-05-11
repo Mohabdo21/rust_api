@@ -1,6 +1,6 @@
 # rust_api
 
-Small Axum + SeaORM service for users and API keys.
+Small Axum + Diesel service for users and API keys.
 
 No auth. No caching. No magic.
 
@@ -14,7 +14,17 @@ No auth. No caching. No magic.
 ## Requirements
 
 - Rust toolchain (stable)
-- SQLite (through the bundled SQLite driver used by SeaORM)
+- SQLite (through Diesel's SQLite backend)
+
+## Configuration
+
+Environment variables:
+
+- DATABASE_URL (default: sqlite://app.db?mode=rwc)
+- APP_HOST (default: 127.0.0.1)
+- APP_PORT (default: 3000)
+
+A .env file is loaded if present; real environment variables still take precedence.
 
 ## Run
 
@@ -29,16 +39,6 @@ Server defaults:
 - Database URL: sqlite://app.db?mode=rwc
 
 Startup runs pending migrations before serving requests.
-
-## Configuration
-
-Environment variables:
-
-- DATABASE_URL (default: sqlite://app.db?mode=rwc)
-- APP_HOST (default: 127.0.0.1)
-- APP_PORT (default: 3000)
-
-A .env file is loaded if present. Real environment variables still win.
 
 ## Quick Smoke Test
 
