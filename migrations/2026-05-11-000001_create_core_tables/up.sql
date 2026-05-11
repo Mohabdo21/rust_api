@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id TEXT NOT NULL,
+    key_value TEXT NOT NULL UNIQUE,
+    label TEXT,
+    revoked BOOLEAN NOT NULL DEFAULT 0,
+    CONSTRAINT fk_api_keys_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);

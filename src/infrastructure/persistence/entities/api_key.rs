@@ -1,9 +1,11 @@
-use sea_orm::entity::prelude::*;
+use diesel::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "api_keys")]
-pub struct Model {
-    #[sea_orm(primary_key)]
+use crate::infrastructure::persistence::{entities::user::UserRow, schema::api_keys};
+
+#[derive(Clone, Debug, Queryable, Selectable, Identifiable, Associations)]
+#[diesel(table_name = api_keys)]
+#[diesel(belongs_to(UserRow, foreign_key = user_id))]
+pub struct ApiKeyRow {
     pub id: String,
     pub user_id: String,
     pub key_value: String,
@@ -11,22 +13,12 @@ pub struct Model {
     pub revoked: bool,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::user::Entity",
-        from = "Column::UserId",
-        to = "super::user::Column::Id",
-        on_update = "NoAction",
-        on_delete = "Cascade"
-    )]
-    User,
+#[derive(Insertable)]
+#[diesel(table_name = api_keys)]
+pub struct NewApiKeyRow<'a> {
+    pub id: &'a str,
+    pub user_id: &'a str,
+    pub key_value: &'a str,
+    pub label: Option<&'a str>,
+    pub revoked: bool,
 }
-
-impl Related<super::user::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
-}
-
-impl ActiveModelBehavior for ActiveModel {}
