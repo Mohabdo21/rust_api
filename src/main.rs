@@ -1,3 +1,6 @@
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+#![deny(unused_must_use)]
+
 mod api;
 mod application;
 mod config;
@@ -40,13 +43,9 @@ async fn main() -> Result<(), AppError> {
     let bind_addr = format!("{}:{}", app_config.host, app_config.port);
     info!(address = %bind_addr, "server starting");
 
-    let listener = tokio::net::TcpListener::bind(&bind_addr)
-        .await
-        .expect("failed to bind tcp listener");
+    let listener = tokio::net::TcpListener::bind(&bind_addr).await?;
     info!(address = %bind_addr, "server listening");
-    axum::serve(listener, app)
-        .await
-        .expect("failed to start server");
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

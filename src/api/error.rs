@@ -22,6 +22,11 @@ impl IntoResponse for ApiError {
                 format!("database error: {err}"),
             )
                 .into_response(),
+            AppError::Io(err) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("io error: {err}"),
+            )
+                .into_response(),
         }
     }
 }

@@ -8,4 +8,6 @@ pub enum AppError {
     NotFound,
     #[error("database error: {0}")]
     Db(#[from] PersistenceError),
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
 }
