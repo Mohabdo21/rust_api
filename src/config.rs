@@ -14,7 +14,7 @@ impl AppConfig {
 
         let database_url =
             env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite://app.db?mode=rwc".to_string());
-        let host = env::var("APP_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+        let host = env::var("APP_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
         let port = env::var("APP_PORT")
             .ok()
             .and_then(|value| value.parse::<u16>().ok())
