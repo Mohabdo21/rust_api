@@ -21,6 +21,7 @@ use infrastructure::persistence::{
 use tracing::info;
 use tracing_subscriber::{EnvFilter, fmt};
 
+/// The main entry point of the application.
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
