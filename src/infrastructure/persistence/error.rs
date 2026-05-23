@@ -19,3 +19,15 @@ pub enum PersistenceError {
     #[error("invalid database url: {0}")]
     InvalidDatabaseUrl(String),
 }
+
+impl PersistenceError {
+    pub fn is_unique_violation(&self) -> bool {
+        matches!(
+            self,
+            Self::Query(diesel::result::Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::UniqueViolation,
+                _
+            ))
+        )
+    }
+}

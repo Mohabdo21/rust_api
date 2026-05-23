@@ -1,6 +1,6 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, State, rejection::JsonRejection},
     http::StatusCode,
     response::IntoResponse,
 };
@@ -29,8 +29,9 @@ pub async fn health() -> impl IntoResponse {
 
 pub async fn create_user(
     State(state): State<AppState>,
-    Json(payload): Json<CreateUserRequest>,
+    payload: Result<Json<CreateUserRequest>, JsonRejection>,
 ) -> Result<impl IntoResponse, ApiError> {
+    let Json(payload) = payload.map_err(ApiError::from_json_rejection)?;
     let user = state
         .user_service
         .create(payload.name, payload.email)
@@ -63,8 +64,9 @@ pub async fn del_user(
 
 pub async fn create_api_key(
     State(state): State<AppState>,
-    Json(payload): Json<CreateApiKeyRequest>,
+    payload: Result<Json<CreateApiKeyRequest>, JsonRejection>,
 ) -> Result<impl IntoResponse, ApiError> {
+    let Json(payload) = payload.map_err(ApiError::from_json_rejection)?;
     let key = state
         .api_key_service
         .create(payload.user_id, payload.label)

@@ -45,6 +45,7 @@ impl ApiKeyService {
             return Err(AppError::NotFound);
         }
 
+        let label = normalize_label(label)?;
         let key_value = generate_api_key_value();
         let key_hash = hash_api_key_value(&key_value);
         let api_key = self
@@ -78,4 +79,23 @@ impl ApiKeyService {
 
         Ok(())
     }
+}
+
+fn normalize_label(label: Option<String>) -> Result<Option<String>, AppError> {
+    let Some(label) = label else {
+        return Ok(None);
+    };
+
+    let trimmed = label.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::Validation("label must not be empty".to_string()));
+    }
+
+    if trimmed.chars().count() > 100 {
+        return Err(AppError::Validation(
+            "label must be at most 100 characters".to_string(),
+        ));
+    }
+
+    Ok(Some(trimmed.to_string()))
 }
