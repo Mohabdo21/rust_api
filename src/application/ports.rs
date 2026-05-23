@@ -21,7 +21,7 @@ pub trait ApiKeyRepository: Send + Sync {
         &self,
         id: Uuid,
         user_id: Uuid,
-        key_value: String,
+        key_hash: String,
         label: Option<String>,
     ) -> Result<ApiKey, PersistenceError>;
     async fn list(&self) -> Result<Vec<ApiKey>, PersistenceError>;

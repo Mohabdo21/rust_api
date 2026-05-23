@@ -8,6 +8,7 @@ No auth. No caching. No magic.
 
 - Creates and lists users.
 - Creates, lists, revokes, and deletes API keys.
+- Returns raw API key material only once at creation time.
 - Uses SQLite.
 - Runs migrations automatically on startup.
 
@@ -55,4 +56,6 @@ curl -sS http://127.0.0.1:3000/users
 curl -sS -X POST http://127.0.0.1:3000/api-keys \
   -H 'content-type: application/json' \
   -d '{"user_id":"USER_ID","label":"local-dev"}'
+
+# save the returned key_value now; list/revoke responses no longer include it
 ```

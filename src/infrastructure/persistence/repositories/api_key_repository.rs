@@ -34,7 +34,6 @@ fn to_domain(row: ApiKeyRow) -> Result<ApiKey, PersistenceError> {
     Ok(ApiKey {
         id: parse_uuid(&row.id, "api_keys.id")?,
         user_id: parse_uuid(&row.user_id, "api_keys.user_id")?,
-        key_value: row.key_value,
         label: row.label,
         revoked: row.revoked,
     })
@@ -46,7 +45,7 @@ impl ApiKeyRepository for DieselApiKeyRepository {
         &self,
         id: Uuid,
         user_id: Uuid,
-        key_value: String,
+        key_hash: String,
         label: Option<String>,
     ) -> Result<ApiKey, PersistenceError> {
         let pool = self.pool.clone();
@@ -59,7 +58,7 @@ impl ApiKeyRepository for DieselApiKeyRepository {
                 .values(&NewApiKeyRow {
                     id: &id_str,
                     user_id: &user_id_str,
-                    key_value: &key_value,
+                    key_hash: &key_hash,
                     label: label.as_deref(),
                     revoked: false,
                 })

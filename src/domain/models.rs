@@ -11,7 +11,6 @@ pub struct User {
 pub struct ApiKey {
     pub id: Uuid,
     pub user_id: Uuid,
-    pub key_value: String,
     pub label: Option<String>,
     pub revoked: bool,
 }

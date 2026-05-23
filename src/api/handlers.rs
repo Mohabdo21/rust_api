@@ -8,7 +8,10 @@ use uuid::Uuid;
 
 use crate::{
     api::{
-        dto::{ApiKeyResponse, CreateApiKeyRequest, CreateUserRequest, UserResponse},
+        dto::{
+            ApiKeyResponse, CreateApiKeyRequest, CreateUserRequest, CreatedApiKeyResponse,
+            UserResponse,
+        },
         error::ApiError,
     },
     application::{api_key_service::ApiKeyService, user_service::UserService},
@@ -67,7 +70,7 @@ pub async fn create_api_key(
         .create(payload.user_id, payload.label)
         .await?;
 
-    Ok((StatusCode::CREATED, Json(ApiKeyResponse::from(key))))
+    Ok((StatusCode::CREATED, Json(CreatedApiKeyResponse::from(key))))
 }
 
 pub async fn list_api_keys(

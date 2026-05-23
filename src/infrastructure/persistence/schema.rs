@@ -10,7 +10,7 @@ diesel::table! {
     api_keys (id) {
         id -> Text,
         user_id -> Text,
-        key_value -> Text,
+        key_hash -> Text,
         label -> Nullable<Text>,
         revoked -> Bool,
     }

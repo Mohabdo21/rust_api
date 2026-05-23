@@ -8,7 +8,7 @@ use crate::infrastructure::persistence::{entities::user::UserRow, schema::api_ke
 pub struct ApiKeyRow {
     pub id: String,
     pub user_id: String,
-    pub key_value: String,
+    pub key_hash: String,
     pub label: Option<String>,
     pub revoked: bool,
 }
@@ -18,7 +18,7 @@ pub struct ApiKeyRow {
 pub struct NewApiKeyRow<'a> {
     pub id: &'a str,
     pub user_id: &'a str,
-    pub key_value: &'a str,
+    pub key_hash: &'a str,
     pub label: Option<&'a str>,
     pub revoked: bool,
 }

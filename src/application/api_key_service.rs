@@ -7,8 +7,16 @@ use crate::{
         error::AppError,
         ports::{ApiKeyRepository, UserRepository},
     },
-    domain::models::ApiKey,
+    domain::{
+        api_key_secret::{generate_api_key_value, hash_api_key_value},
+        models::ApiKey,
+    },
 };
+
+pub struct CreatedApiKey {
+    pub api_key: ApiKey,
+    pub key_value: String,
+}
 
 #[derive(Clone)]
 pub struct ApiKeyService {
@@ -27,17 +35,24 @@ impl ApiKeyService {
         }
     }
 
-    pub async fn create(&self, user_id: Uuid, label: Option<String>) -> Result<ApiKey, AppError> {
+    pub async fn create(
+        &self,
+        user_id: Uuid,
+        label: Option<String>,
+    ) -> Result<CreatedApiKey, AppError> {
         let exists = self.user_repo.find_by_id(user_id).await?;
         if exists.is_none() {
             return Err(AppError::NotFound);
         }
 
-        let key_value = Uuid::new_v4().to_string();
-        Ok(self
+        let key_value = generate_api_key_value();
+        let key_hash = hash_api_key_value(&key_value);
+        let api_key = self
             .api_key_repo
-            .create(Uuid::now_v7(), user_id, key_value, label)
-            .await?)
+            .create(Uuid::now_v7(), user_id, key_hash, label)
+            .await?;
+
+        Ok(CreatedApiKey { api_key, key_value })
     }
 
     pub async fn list(&self) -> Result<Vec<ApiKey>, AppError> {

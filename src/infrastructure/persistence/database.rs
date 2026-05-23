@@ -1,7 +1,12 @@
-use diesel::{RunQueryDsl, SqliteConnection, r2d2::ConnectionManager, sql_query};
+use diesel::{
+    ExpressionMethods, QueryDsl, RunQueryDsl, SqliteConnection, r2d2::ConnectionManager, sql_query,
+};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 
-use crate::infrastructure::persistence::error::PersistenceError;
+use crate::{
+    domain::api_key_secret::{hash_api_key_value, is_hashed_api_key_value},
+    infrastructure::persistence::{error::PersistenceError, schema::api_keys},
+};
 
 pub type DbPool = diesel::r2d2::Pool<ConnectionManager<SqliteConnection>>;
 
@@ -18,10 +23,29 @@ pub async fn connect_and_migrate(database_url: &str) -> Result<DbPool, Persisten
         sql_query("PRAGMA foreign_keys = ON;").execute(&mut conn)?;
         conn.run_pending_migrations(MIGRATIONS)
             .map_err(|err| PersistenceError::Migration(err.to_string()))?;
+        backfill_legacy_api_key_hashes(&mut conn)?;
 
         Ok(pool)
     })
     .await?
+}
+
+fn backfill_legacy_api_key_hashes(conn: &mut SqliteConnection) -> Result<(), PersistenceError> {
+    let rows = api_keys::table
+        .select((api_keys::id, api_keys::key_hash))
+        .load::<(String, String)>(conn)?;
+
+    for (id, stored_value) in rows {
+        if is_hashed_api_key_value(&stored_value) {
+            continue;
+        }
+
+        diesel::update(api_keys::table.find(id))
+            .set(api_keys::key_hash.eq(hash_api_key_value(&stored_value)))
+            .execute(conn)?;
+    }
+
+    Ok(())
 }
 
 fn normalize_sqlite_url(database_url: &str) -> Result<String, PersistenceError> {
