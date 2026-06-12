@@ -7,7 +7,7 @@ edition = "2024"
 async-trait = "0.1"
 axum = "0.8"
 dotenvy = "0.15"
-diesel = { version = "2.3.9", features = ["sqlite", "r2d2"] }
+diesel = { version = "2.3.10", features = ["sqlite", "r2d2"] }
 diesel_migrations = "2.3"
 libsqlite3-sys = { version = "0.30.1", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
