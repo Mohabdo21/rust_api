@@ -8,7 +8,10 @@ pub fn generate_api_key_value() -> String {
 }
 
 pub fn hash_api_key_value(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
+    Sha256::digest(value.as_bytes())
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect()
 }
 
 pub fn is_hashed_api_key_value(value: &str) -> bool {
